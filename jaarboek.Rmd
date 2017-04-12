@@ -15,6 +15,7 @@ opts_chunk$set(
 library(dplyr)
 library(ggplot2)
 library(INBOtheme)
+library(plotly)
 ```
 
 ```{r}
@@ -65,11 +66,15 @@ dataset <- imputatie %>%
         levels = c("Waargenomen", "Ontbrekend", "Enkelvoudig", "Meervoudig")
       )
   )
-ggplot(dataset, aes(x = X, y = Y, colour = Meting, shape = Meting)) +
+```
+
+```{r}
+gg <- ggplot(dataset, aes(x = X, y = Y, colour = Meting, shape = Meting)) +
   geom_point() +
   scale_shape_manual(
     values = c(Waargenomen = 16, Ontbrekend = 1, Enkelvoudig = 15, Meervoudig = 17)
   )
+ggplotly(gg)
 ```
 
 
