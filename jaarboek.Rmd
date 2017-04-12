@@ -19,20 +19,21 @@ library(plotly)
 ```
 
 ```{r}
-n <- 100
+n_data <- 50
+n_set <- 20
 intercept <- 10
 trend <- 0.5
 ruis <- 0.2
 ontbrekend <- 0.5
 set.seed(123)
-dataset <- data.frame(
-  X = runif(n)
+dataset <- expand.grid(
+  X = runif(n_data)
 ) %>%
   mutate(
-    Y = intercept + trend * X + rnorm(n, mean = 0, sd = ruis),
+    Y = intercept + trend * X + rnorm(n_data, mean = 0, sd = ruis),
     Meting = sample(
       c("Ontbrekend", "Waargenomen"), 
-      size = n, 
+      size = n_data, 
       prob = c(ontbrekend, 1 - ontbrekend), 
       replace = TRUE
     )
@@ -48,28 +49,30 @@ dataset <- imputatie %>%
     Meting = "Enkelvoudig",
     Y = voorspelling$fit
   ) %>%
-  bind_rows(dataset)
+  bind_rows(dataset) %>%
+  merge(data.frame(Imputatieset = seq_len(n_set)))
 dataset <- imputatie %>%
+  merge(data.frame(Imputatieset = seq_len(n_set))) %>%
   mutate(
     Meting = "Meervoudig",
     Y = rnorm(
-      nrow(imputatie),
+      nrow(imputatie) * n_set,
       mean = voorspelling$fit,
       sd = voorspelling$se.fit
     ) %>%
-      rnorm(n = nrow(imputatie), sd = ruis_voorspelling)
+      rnorm(n = nrow(imputatie) * n_set, sd = ruis_voorspelling)
   ) %>%
   bind_rows(dataset) %>%
   mutate(Meting = 
       factor(
         Meting, 
-        levels = c("Waargenomen", "Ontbrekend", "Enkelvoudig", "Meervoudig")
+        levels = c("Waargenomen", "Ontbrekend", "Meervoudig", "Enkelvoudig")
       )
   )
 ```
 
 ```{r}
-gg <- ggplot(dataset, aes(x = X, y = Y, colour = Meting, shape = Meting)) +
+gg <- ggplot(dataset, aes(x = X, y = Y, colour = Meting, shape = Meting, frame = Imputatieset)) +
   geom_point() +
   scale_shape_manual(
     values = c(Waargenomen = 16, Ontbrekend = 1, Enkelvoudig = 15, Meervoudig = 17)
