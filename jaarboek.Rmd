@@ -1,11 +1,9 @@
 ---
 title: "Omgaan met ontbrekende waarden in meetreeksen"
-author: "Thierry Onkelinx"
+author: "Thierry Onkelinx, Koen Devos, Paul Quataert"
 output: html_document
+bibliography: JORN_2017.bib
 ---
-
-Ontbrekende waarden zijn onvermijdelijk in langlopende meetreeksen. Deze gewoon negeren levert vaak een vertekend beeld op. Meervoudige imputatie is een statistische techniek die toelaat om de ontbrekende waarden in rekening te brengen.
-
 
 ```{r include = FALSE}
 library(knitr)
@@ -26,6 +24,24 @@ trend <- 0.5
 ruis <- 0.2
 ontbrekend <- 0.5
 set.seed(123)
+```
+
+
+Ontbrekende waarden zijn onvermijdelijk in langlopende meetreeksen. Deze gewoon negeren levert vaak een vertekend beeld op. Een goed voorbeeld hiervan is het totaal aantal dieren in een gebied. Indien we ontbrekende tellingen negeren dan zullen we een onderschatting krijgen van het totaal.
+
+We lossen het probleem op door de ontbrekende gegevens in te vullen door geïmputeerde waarden. In ecologisch kringen wordt vaak gebruik gemaakt van enkelvoudige imputatie waarbij we de voorspelde waarde volgens een model gebruiken als geïmputeerde waarde [@UnderhillEtal1994;@TRIM;@birdSTAT].  Meervoudige imputatie is een gekend statistische techniek uit medische kringen [@Rubin1987]. Het belangrijkste verschil is dat ontbrekende waarden vervangen uit een willekeurige waarde die we trekken uit de verdeling van volgens het model waarschijnlijke waarden. Op die manier houden we rekening met de modelonzekerheid. Uiteraard hangt het resultaat hierdoor deels af van toeval. De figuur toont `r n_set` verschillende imputaties. Daarom herhalen we de gewenste berekeningen voor meerdere imputatiesets en middelen de resultaten uit.
+
+@Onkelinx2016 vergeleken enkelvoudige en meervoudige imputatie. De belangrijkste conclussie is dat enkelvoudige imputatie de onzekerheid op het eindresultaat onderschat. De geïmputeerde waarden bevat immers geen onzekerheid waardoor de variabiliteit in de volledige gegevens afneemt. Bij meervoudige imputatie zien we net het omgekeerde: de onzekerheid op het eindresultaat is groter. Hier zijn de geïmputeerde waarden immers een bijkomende bron van onzekerheid waardoor de variabiliteit in de volledige gegevens toeneemt.
+
+## Aanbevelingen
+
+1. Probeer ontbrekende waarnemingen zoveel mogelijk te vermijden.
+1. Gebruik steeds meervoudige imputatie.
+1. Imputeer op basis van een voldoende complex model.
+
+Om het gebruik van meervoudige imputatie in ecologie te vereenvoudigen, hebben we het R package `multimput` ontwikkeld [@multimput]. Dit is vrij beschikbaar via https://github.com/inbo/multimput
+
+```{r}
 dataset <- expand.grid(
   X = runif(n_data)
 ) %>%
@@ -71,7 +87,7 @@ dataset <- imputatie %>%
   )
 ```
 
-```{r}
+```{r fig.cap = "Gesimuleerde gegevens die het verschil tussen enkelvoudige en meervoudige imputatie illustreren."}
 gg <- ggplot(dataset, aes(x = X, y = Y, colour = Meting, shape = Meting, frame = Imputatieset)) +
   geom_point() +
   scale_shape_manual(
@@ -80,4 +96,4 @@ gg <- ggplot(dataset, aes(x = X, y = Y, colour = Meting, shape = Meting, frame =
 ggplotly(gg)
 ```
 
-
+## Referenties
