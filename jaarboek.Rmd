@@ -1,0 +1,75 @@
+---
+title: "Omgaan met ontbrekende waarden in meetreeksen"
+author: "Thierry Onkelinx"
+output: html_document
+---
+
+Ontbrekende waarden zijn onvermijdelijk in langlopende meetreeksen. Deze gewoon negeren levert vaak een vertekend beeld op. Meervoudige imputatie is een statistische techniek die toelaat om de ontbrekende waarden in rekening te brengen.
+
+
+```{r include = FALSE}
+library(knitr)
+opts_chunk$set(
+  echo = FALSE
+)
+library(dplyr)
+library(ggplot2)
+library(INBOtheme)
+```
+
+```{r}
+n <- 100
+intercept <- 10
+trend <- 0.5
+ruis <- 0.2
+ontbrekend <- 0.5
+set.seed(123)
+dataset <- data.frame(
+  X = runif(n)
+) %>%
+  mutate(
+    Y = intercept + trend * X + rnorm(n, mean = 0, sd = ruis),
+    Meting = sample(
+      c("Ontbrekend", "Waargenomen"), 
+      size = n, 
+      prob = c(ontbrekend, 1 - ontbrekend), 
+      replace = TRUE
+    )
+  )
+werkelijk_model <- lm(Y ~ X, data = dataset)
+imputatie_model <- lm(Y ~ X, data = dataset, subset = Meting == "Waargenomen")
+imputatie <- dataset %>%
+  filter(Meting == "Ontbrekend")
+voorspelling <- predict(imputatie_model, newdata = imputatie, se.fit = TRUE)
+ruis_voorspelling <- summary(imputatie_model)$sigma
+dataset <- imputatie %>%
+  mutate(
+    Meting = "Enkelvoudig",
+    Y = voorspelling$fit
+  ) %>%
+  bind_rows(dataset)
+dataset <- imputatie %>%
+  mutate(
+    Meting = "Meervoudig",
+    Y = rnorm(
+      nrow(imputatie),
+      mean = voorspelling$fit,
+      sd = voorspelling$se.fit
+    ) %>%
+      rnorm(n = nrow(imputatie), sd = ruis_voorspelling)
+  ) %>%
+  bind_rows(dataset) %>%
+  mutate(Meting = 
+      factor(
+        Meting, 
+        levels = c("Waargenomen", "Ontbrekend", "Enkelvoudig", "Meervoudig")
+      )
+  )
+ggplot(dataset, aes(x = X, y = Y, colour = Meting, shape = Meting)) +
+  geom_point() +
+  scale_shape_manual(
+    values = c(Waargenomen = 16, Ontbrekend = 1, Enkelvoudig = 15, Meervoudig = 17)
+  )
+```
+
+
