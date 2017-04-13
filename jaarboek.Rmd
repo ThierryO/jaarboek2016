@@ -1,14 +1,18 @@
 ---
-title: "Omgaan met ontbrekende waarden in meetreeksen"
+title: "Ook de vogels die niet geteld worden, tellen mee!"
 author: "Thierry Onkelinx, Koen Devos, Paul Quataert"
 output: html_document
 bibliography: JORN_2017.bib
 ---
 
+## Omgaan met ontbrekende waarden in meetreeksen
+
 ```{r include = FALSE}
 library(knitr)
 opts_chunk$set(
-  echo = FALSE
+  echo = FALSE,
+  cache = TRUE,
+  autodep = TRUE
 )
 library(dplyr)
 library(tidyr)
@@ -27,15 +31,12 @@ ontbrekend <- 0.5
 set.seed(123)
 ```
 
-Ontbrekende waarden zijn onvermijdelijk in langlopende meetreeksen. Deze gewoon negeren levert vaak een vertekend beeld op. Een goed voorbeeld hiervan is het totaal aantal dieren in een gebied. Indien we ontbrekende tellingen negeren dan zullen we een onderschatting krijgen van het totaal.
+Ontbrekende waarden zijn onvermijdelijk bij langlopende meetreeksen. Deze gewoon negeren levert een vertekend beeld op. Een goed voorbeeld hiervan zijn tellingen van overwinterende watervogels. Van oktober tot en maart worden in Vlaanderen elke maand in ruim 700 gebieden alle watervogels geteld. Op die manier probeert het INBO betrouwbare populatieschattingen en –trends te bepalen voor de verschillende soorten watervogels die hier de winter doorbrengen. Hoewel er bij elke telling gestreefd wordt naar een zo volledig mogelijke telbedekking, zijn er altijd wel een aantal gebieden die door omstandigheden niet kunnen bezocht worden. Als we die ontbrekende tellingen negeren, zal dit leiden tot een onderschatting van het werkelijk aanwezige aantal watervogels in Vlaanderen. Wanneer het aantal getelde gebieden bovendien varieert van jaar tot jaar, dan geven de jaarlijkse totaalaantallen ook geen correct beeld van de meerjaarlijkse trend.  
 
-## Beschikbare technieken
+We kunnen het probleem oplossen door de ontbrekende gegevens in te vullen of te imputeren op basis van voorspellingen. Deze techniek noemen we imputatie en de voorspellingen zijn de geïmputeerde waarden. De meest eenvoudige vorm is  enkelvoudige imputatie. Hierbij worden de ontbrekende waarden slechts één keer voorspeld op basis van een model en schatten we op basis hiervan het aantal dieren. Hierdoor zijn de schattingen minder vertekend, maar brengen we de onzekerheid die gepaard gaat met de voorspelling niet in kaart.
 
-We lossen het probleem op door de ontbrekende gegevens in te vullen door geïmputeerde waarden. In ecologisch kringen wordt vaak gebruik gemaakt van enkelvoudige imputatie waarbij we de voorspelde waarde volgens een model gebruiken als geïmputeerde waarde [@UnderhillEtal1994;@TRIM;@birdSTAT].  Meervoudige imputatie is een gekend statistische techniek uit medische kringen [@Rubin1987]. Het belangrijkste verschil is dat ontbrekende waarden vervangen uit een willekeurige waarde die we trekken uit de verdeling van volgens het model waarschijnlijke waarden. Op die manier houden we rekening met de modelonzekerheid. Uiteraard hangt het resultaat hierdoor deels af van toeval. De figuur toont `r n_set` verschillende imputaties. Daarom herhalen we de gewenste berekeningen voor meerdere imputatiesets en middelen de resultaten uit.
+Deze techniek is vrij courant  in medische kringen [@Rubin1987], maar weinig gekend in een ecologische context waar enkelvoudige imputatie meer courant is [@UnderhillEtal1994;@TRIM;@birdSTAT]. @Onkelinx2016 vergeleken enkelvoudige en meervoudige imputatie bij vogeltellingen. De belangrijkste conclusie is dat enkelvoudige imputatie de onzekerheid op het eindresultaat inderdaad onderschat. 
 
-## Technieken vergeleken
-
-@Onkelinx2016 vergeleken enkelvoudige en meervoudige imputatie. De belangrijkste conclussie is dat enkelvoudige imputatie de onzekerheid op het eindresultaat onderschat. De geïmputeerde waarden bevat immers geen onzekerheid waardoor de variabiliteit in de volledige gegevens afneemt. Bij meervoudige imputatie zien we net het omgekeerde: de onzekerheid op het eindresultaat is groter. Hier zijn de geïmputeerde waarden immers een bijkomende bron van onzekerheid waardoor de variabiliteit in de volledige gegevens toeneemt.
 
 ## Aanbevelingen
 
