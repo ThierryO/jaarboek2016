@@ -31,18 +31,17 @@ ontbrekend <- 0.5
 set.seed(123)
 ```
 
-Ontbrekende waarden zijn onvermijdelijk bij langlopende meetreeksen. Deze gewoon negeren levert een vertekend beeld op. Een goed voorbeeld hiervan zijn tellingen van overwinterende watervogels. Van oktober tot en maart worden in Vlaanderen elke maand in ruim 700 gebieden alle watervogels geteld. Op die manier probeert het INBO betrouwbare populatieschattingen en –trends te bepalen voor de verschillende soorten watervogels die hier de winter doorbrengen. Hoewel er bij elke telling gestreefd wordt naar een zo volledig mogelijke telbedekking, zijn er altijd wel een aantal gebieden die door omstandigheden niet kunnen bezocht worden. Als we die ontbrekende tellingen negeren, zal dit leiden tot een onderschatting van het werkelijk aanwezige aantal watervogels in Vlaanderen. Wanneer het aantal getelde gebieden bovendien varieert van jaar tot jaar, dan geven de jaarlijkse totaalaantallen ook geen correct beeld van de meerjaarlijkse trend.  
+Ontbrekende waarden zijn onvermijdelijk bij langlopende meetreeksen. Een goed voorbeeld hiervan zijn tellingen van overwinterende watervogels. Tijdens de wintermaanden worden maandelijks alle watervogels geteld in 700 Vlaamse gebieden. Op die manier probeert het INBO betrouwbare populatieschattingen en –trends te bepalen voor de verschillende soorten watervogels. Hoewel we naar streven om alles te tellen, zijn er altijd wel een aantal gebieden die door omstandigheden niet bezocht worden. Als we die ontbrekende tellingen negeren, zal dit leiden tot een onderschatting van het werkelijk aantal watervogels. Wanneer het aantal getelde gebieden bovendien varieert van jaar tot jaar, dan geven de jaarlijkse totalen ook geen correct beeld van de meerjaarlijkse trend.  
+We kunnen het probleem oplossen door de ontbrekende gegevens in te vullen of te _imputeren_ op basis van voorspellingen. Deze techniek noemen we imputatie en de voorspellingen zijn de geïmputeerde waarden. We spreken voor enkelvoudige imputatie als we de voorspelling zelf gebruiken. Bij meervoudige imputatie kiezen we een willekeurige waarde die gebaseerd is op de voorspelling en de bijhorende onzekerheid.
 
-We kunnen het probleem oplossen door de ontbrekende gegevens in te vullen of te imputeren op basis van voorspellingen. Deze techniek noemen we imputatie en de voorspellingen zijn de geïmputeerde waarden. De meest eenvoudige vorm is  enkelvoudige imputatie. Hierbij worden de ontbrekende waarden slechts één keer voorspeld op basis van een model en schatten we op basis hiervan het aantal dieren. Hierdoor zijn de schattingen minder vertekend, maar brengen we de onzekerheid die gepaard gaat met de voorspelling niet in kaart.
-
-Deze techniek is vrij courant  in medische kringen [@Rubin1987], maar weinig gekend in een ecologische context waar enkelvoudige imputatie meer courant is [@UnderhillEtal1994;@TRIM;@birdSTAT]. @Onkelinx2016 vergeleken enkelvoudige en meervoudige imputatie bij vogeltellingen. De belangrijkste conclusie is dat enkelvoudige imputatie de onzekerheid op het eindresultaat inderdaad onderschat. 
+Meervoudige imputatie is vrij courant in medische kringen [@Rubin1987], maar weinig gekend in een ecologische context waar enkelvoudige imputatie meer courant is [@UnderhillEtal1994;@TRIM;@birdSTAT]. @Onkelinx2016 vergeleken enkelvoudige en meervoudige imputatie bij vogeltellingen. De belangrijkste conclusie is dat meervoudige imputatie de bijkomende onzekerheid correct in rekening brengt, terwijl enkelvoudige imputatie deze onderschat.
 
 
 ## Aanbevelingen
 
 1. Probeer ontbrekende waarnemingen zoveel mogelijk te vermijden.
 1. Gebruik steeds meervoudige imputatie.
-1. Imputeer op basis van een voldoende complex model.
+1. Besteed de nodige aandacht aan het maken van goede voorspellingen.
 
 Om het gebruik van meervoudige imputatie in ecologie te vereenvoudigen, hebben we het R package `multimput` ontwikkeld [@multimput]. Dit is vrij beschikbaar via https://github.com/inbo/multimput
 
