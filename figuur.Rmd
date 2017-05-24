@@ -1,0 +1,122 @@
+---
+output: html_document
+---
+
+```{r include = FALSE}
+library(knitr)
+opts_chunk$set(
+  echo = FALSE,
+  cache = TRUE,
+  autodep = TRUE
+)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(INBOtheme)
+library(plotly)
+```
+
+```{r}
+n_data <- 50
+n_set <- 50
+intercept <- 10
+trend <- 0.5
+ruis <- 0.2
+ontbrekend <- 0.5
+set.seed(123)
+```
+
+```{r}
+dataset <- expand.grid(
+  X = runif(n_data)
+) %>%
+  mutate(
+    Y = intercept + trend * X + rnorm(n_data, mean = 0, sd = ruis),
+    Meting = sample(
+      c("Ontbrekend", "Waargenomen"), 
+      size = n_data, 
+      prob = c(ontbrekend, 1 - ontbrekend), 
+      replace = TRUE
+    )
+  )
+imputatie_model <- lm(Y ~ X, data = dataset, subset = Meting == "Waargenomen")
+imputatie <- dataset %>%
+  filter(Meting == "Ontbrekend")
+voorspelling <- predict(imputatie_model, newdata = imputatie, se.fit = TRUE)
+ruis_voorspelling <- summary(imputatie_model)$sigma
+dataset <- imputatie %>%
+  mutate(
+    Meting = "Enkelvoudig",
+    Y = voorspelling$fit
+  ) %>%
+  bind_rows(dataset) %>%
+  merge(data.frame(Imputatieset = seq_len(n_set)))
+dataset <- imputatie %>%
+  merge(data.frame(Imputatieset = seq_len(n_set))) %>%
+  mutate(
+    Meting = "Meervoudig",
+    Y = rnorm(
+      nrow(imputatie) * n_set,
+      mean = voorspelling$fit,
+      sd = voorspelling$se.fit
+    ) %>%
+      rnorm(n = nrow(imputatie) * n_set, sd = ruis_voorspelling)
+  ) %>%
+  bind_rows(dataset) %>%
+  mutate(Meting = 
+      factor(
+        Meting, 
+        levels = c("Waargenomen", "Ontbrekend", "Meervoudig", "Enkelvoudig")
+      )
+  )
+```
+
+```{r}
+resultaat <- function(df) {
+  model <- lm(Y ~ X, data = df)
+  lijn <- data.frame(X = seq(0, 1, length = 41))
+  fit <- predict(model, newdata = lijn, se.fit = TRUE)
+  lijn %>%
+    mutate(Y = fit[["fit"]], SE = fit[["se.fit"]])
+}
+ruwe_trend <- dataset %>%
+  filter(Meting %in% c("Waargenomen", "Meervoudig")) %>%
+  group_by(Imputatieset) %>%
+  do(
+    Voorspelling = resultaat(.)
+  ) %>%
+  unnest(Voorspelling)
+trend <- ruwe_trend %>%
+  group_by(X) %>%
+  arrange(Imputatieset) %>%
+  mutate(
+    Y_hat = cummean(Y),
+    SE_hat = sqrt(cummean(SE ^ 2) + cummean((Y - Y_hat) ^ 2) * (Imputatieset + 1) / (Imputatieset - 1))
+  ) %>%
+  select(-Y, -SE, Y = Y_hat, SE = SE_hat) %>%
+  mutate(Methode = "Meervoudig\nresultaat") %>%
+  bind_rows(
+    ruwe_trend %>%
+      mutate(Methode = "Meervoudig\nruw")
+  ) %>%
+  mutate(
+    Ondergrens = qnorm(0.025, Y, SE),
+    Bovengrens = qnorm(0.975, Y, SE)
+  ) %>%
+  select(-SE) %>%
+  gather("Type2", "Waarde", Y, Ondergrens, Bovengrens) %>%
+  mutate(Type = ifelse(Type2 == "Y", "Schatting", "Grens"))
+```
+
+
+```{r fig.cap = "Gesimuleerde gegevens die het verschil tussen enkelvoudige en meervoudige imputatie illustreren."}
+gg1 <- ggplot(dataset, aes(x = X, y = Y, colour = Meting, shape = Meting, frame = Imputatieset)) +
+  geom_point() +
+  scale_shape_manual(
+    values = c(Waargenomen = 16, Ontbrekend = 1, Enkelvoudig = 15, Meervoudig = 17)
+  )
+gg2 <- ggplot(trend, aes(x = X, y = Waarde, frame = Imputatieset)) +
+  geom_line(aes(colour = Methode, group = Type2, linetype = Type)) +
+  scale_linetype_manual(values = c(2, 1))
+subplot(ggplotly(gg2), ggplotly(gg1))
+```
